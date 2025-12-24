@@ -1,5 +1,6 @@
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Integer
+from datetime import datetime
+from sqlalchemy import Column, String, Text, ForeignKey, Integer, DateTime, Date
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import declarative_base
 
@@ -25,9 +26,12 @@ class Recipe(Base):
     servings = Column(Integer, nullable=True)
     cooking_time = Column(Integer, nullable=True)
     complexity = Column(String, nullable=True)
+    calories = Column(Integer, nullable=True)
     ingredients = Column(JSONB, nullable=False, default={})
     image = Column(String, nullable=True)
     tags = Column(JSONB, nullable=True, default=[])
+    last_cooked = Column(Date, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
 
 class Ingredient(Base):

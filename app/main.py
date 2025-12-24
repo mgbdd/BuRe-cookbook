@@ -109,11 +109,14 @@ async def list_recipes(db: AsyncSession = Depends(get_db)):
             "servings": recipe.servings,
             "cooking_time": recipe.cooking_time,
             "complexity": recipe.complexity,
+            "calories": recipe.calories,
             "image": recipe.image,
-            "tags": recipe.tags
+            "tags": recipe.tags,
+            "last_cooked": recipe.last_cooked,
+            "created_at": recipe.created_at
         })
     
-    return result
+    return {"recipes": result}
 
 @app.get(
     "/recipes/{recipe_id}",
@@ -136,8 +139,11 @@ async def get_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
         "servings": recipe.servings,
         "cooking_time": recipe.cooking_time,
         "complexity": recipe.complexity,
+        "calories": recipe.calories,
         "image": recipe.image,
-        "tags": recipe.tags
+        "tags": recipe.tags,
+        "last_cooked": recipe.last_cooked,
+        "created_at": recipe.created_at
     }
 
 @app.put(
@@ -161,8 +167,11 @@ async def update_recipe(recipe_id: UUID, recipe: schemas.RecipeCreate, db: Async
         "servings": updated_recipe.servings,
         "cooking_time": updated_recipe.cooking_time,
         "complexity": updated_recipe.complexity,
+        "calories": updated_recipe.calories,
         "image": updated_recipe.image,
-        "tags": updated_recipe.tags
+        "tags": updated_recipe.tags,
+        "last_cooked": updated_recipe.last_cooked,
+        "created_at": updated_recipe.created_at
     }
 
 @app.delete(

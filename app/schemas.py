@@ -1,5 +1,6 @@
 from typing import Dict, Optional, List, Literal
 from uuid import UUID
+from datetime import date, datetime
 from pydantic import BaseModel, Field
 
 
@@ -11,8 +12,10 @@ class RecipeCreate(BaseModel):
     servings: Optional[int] = Field(None, description="Number of servings this recipe makes", ge=1)
     cooking_time: Optional[int] = Field(None, description="Total cooking time in minutes", ge=1)
     complexity: Optional[Literal["easy", "medium", "hard"]] = Field(None, description="Difficulty level of the recipe")
+    calories: Optional[int] = Field(None, description="Estimated calories per serving", ge=0)
     image: Optional[str] = Field(None, description="Path to the recipe image (e.g., '/images/filename.jpg')")
     tags: Optional[List[str]] = Field(None, description="List of tags for categorizing the recipe (e.g., ['vegan', 'dessert'])")
+    last_cooked: Optional[date] = Field(None, description="Date when this recipe was last cooked")
 
 
 class RecipeId(BaseModel):
@@ -28,8 +31,11 @@ class Recipe(BaseModel):
     servings: Optional[int] = Field(None, description="Number of servings this recipe makes")
     cooking_time: Optional[int] = Field(None, description="Total cooking time in minutes")
     complexity: Optional[Literal["easy", "medium", "hard"]] = Field(None, description="Difficulty level of the recipe")
+    calories: Optional[int] = Field(None, description="Estimated calories per serving")
     image: Optional[str] = Field(None, description="Path to the recipe image (e.g., '/images/filename.jpg')")
     tags: Optional[List[str]] = Field(None, description="List of tags for categorizing the recipe (e.g., ['vegan', 'dessert'])")
+    last_cooked: Optional[date] = Field(None, description="Date when this recipe was last cooked")
+    created_at: datetime = Field(..., description="Timestamp when the recipe was created")
 
 
 class RecipeList(BaseModel):
