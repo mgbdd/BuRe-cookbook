@@ -1,48 +1,48 @@
 from typing import Dict, Optional, List, Literal
 from uuid import UUID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RecipeCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    ingredients: Dict[str, str]
-    instructions: str
-    servings: Optional[int] = None
-    cooking_time: Optional[int] = None
-    complexity: Optional[Literal["easy", "medium", "hard"]] = None
-    image: Optional[str] = None
-    tags: Optional[List[str]] = None
+    name: str = Field(..., description="Name of the recipe")
+    description: Optional[str] = Field(None, description="Detailed description of the recipe")
+    ingredients: Dict[str, str] = Field(..., description="Dictionary of ingredients with amounts (e.g., {'flour': '2 cups'})")
+    instructions: str = Field(..., description="Step-by-step cooking instructions")
+    servings: Optional[int] = Field(None, description="Number of servings this recipe makes", ge=1)
+    cooking_time: Optional[int] = Field(None, description="Total cooking time in minutes", ge=1)
+    complexity: Optional[Literal["easy", "medium", "hard"]] = Field(None, description="Difficulty level of the recipe")
+    image: Optional[str] = Field(None, description="Path to the recipe image (e.g., '/images/filename.jpg')")
+    tags: Optional[List[str]] = Field(None, description="List of tags for categorizing the recipe (e.g., ['vegan', 'dessert'])")
 
 
 class RecipeId(BaseModel):
-    id: UUID
+    id: UUID = Field(..., description="Unique identifier of the created recipe")
 
 
 class Recipe(BaseModel):
-    id: UUID
-    name: str
-    description: Optional[str] = None
-    ingredients: Dict[str, str]
-    instructions: str
-    servings: Optional[int] = None
-    cooking_time: Optional[int] = None
-    complexity: Optional[Literal["easy", "medium", "hard"]] = None
-    image: Optional[str] = None
-    tags: Optional[List[str]] = None
+    id: UUID = Field(..., description="Unique identifier of the recipe")
+    name: str = Field(..., description="Name of the recipe")
+    description: Optional[str] = Field(None, description="Detailed description of the recipe")
+    ingredients: Dict[str, str] = Field(..., description="Dictionary of ingredients with amounts (e.g., {'flour': '2 cups'})")
+    instructions: str = Field(..., description="Step-by-step cooking instructions")
+    servings: Optional[int] = Field(None, description="Number of servings this recipe makes")
+    cooking_time: Optional[int] = Field(None, description="Total cooking time in minutes")
+    complexity: Optional[Literal["easy", "medium", "hard"]] = Field(None, description="Difficulty level of the recipe")
+    image: Optional[str] = Field(None, description="Path to the recipe image (e.g., '/images/filename.jpg')")
+    tags: Optional[List[str]] = Field(None, description="List of tags for categorizing the recipe (e.g., ['vegan', 'dessert'])")
 
 
 class RecipeList(BaseModel):
-    recipes: List[Recipe]
+    recipes: List[Recipe] = Field(..., description="List of recipes")
 
 
 class ImageUploadResponse(BaseModel):
-    image_path: str
+    image_path: str = Field(..., description="Path to the uploaded image that can be used in recipe creation")
 
 
 class DeleteResponse(BaseModel):
-    status: str
+    status: str = Field(..., description="Status of the delete operation")
 
 
 class Healthcheck(BaseModel):
-    message: str
+    message: str = Field(..., description="Health status message")
