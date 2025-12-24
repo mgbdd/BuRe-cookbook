@@ -62,7 +62,7 @@ async def startup_event():
             logger.error(f"Error creating fake user: {e}")
             await db.rollback()
 
-@app.get("/")
+@app.get("/", response_model=schemas.Healthcheck)
 async def root():
     return {"message": "Recipes API is running"}
 

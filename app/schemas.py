@@ -3,11 +3,6 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class IngredientIn(BaseModel):
-    name: str
-    amount: str
-
-
 class RecipeCreate(BaseModel):
     name: str
     description: Optional[str] = None
@@ -28,3 +23,7 @@ class RecipeOut(BaseModel):
     cooking_time: int
     complexity: int
     image: Optional[str] = None
+
+
+class Healthcheck(BaseModel):
+    message: str
