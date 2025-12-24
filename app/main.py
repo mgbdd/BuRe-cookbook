@@ -66,11 +66,22 @@ async def startup_event():
             logger.error(f"Error creating fake user: {e}")
             await db.rollback()
 
-@app.get("/", response_model=schemas.Healthcheck)
+@app.get(
+    "/",
+    response_model=schemas.Healthcheck,
+    summary="Health Check",
+    description="Check if the API is running and healthy"
+)
 async def root():
     return {"message": "Recipes API is running"}
 
-@app.post("/recipes", response_model=schemas.RecipeId)
+@app.post(
+    "/recipes",
+    response_model=schemas.RecipeId,
+    summary="Create Recipe",
+    description="Create a new recipe and return its unique ID",
+    status_code=201
+)
 async def create_recipe(recipe: schemas.RecipeCreate, db: AsyncSession = Depends(get_db)):
     db_recipe = await crud.create_recipe(db, FAKE_USER_ID, recipe)
     
@@ -78,7 +89,12 @@ async def create_recipe(recipe: schemas.RecipeCreate, db: AsyncSession = Depends
         "id": db_recipe.recipe_id
     }
 
-@app.get("/recipes", response_model=schemas.RecipeList)
+@app.get(
+    "/recipes",
+    response_model=schemas.RecipeList,
+    summary="List Recipes",
+    description="Get a list of all recipes"
+)
 async def list_recipes(db: AsyncSession = Depends(get_db)):
     recipes = await crud.get_recipes(db, FAKE_USER_ID)
     
@@ -99,7 +115,12 @@ async def list_recipes(db: AsyncSession = Depends(get_db)):
     
     return result
 
-@app.get("/recipes/{recipe_id}", response_model=schemas.Recipe)
+@app.get(
+    "/recipes/{recipe_id}",
+    response_model=schemas.Recipe,
+    summary="Get Recipe",
+    description="Get a specific recipe by its ID"
+)
 async def get_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
     recipe = await crud.get_recipe(db, recipe_id)
     
@@ -119,7 +140,12 @@ async def get_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
         "tags": recipe.tags
     }
 
-@app.put("/recipes/{recipe_id}", response_model=schemas.Recipe)
+@app.put(
+    "/recipes/{recipe_id}",
+    response_model=schemas.Recipe,
+    summary="Update Recipe",
+    description="Update an existing recipe by its ID"
+)
 async def update_recipe(recipe_id: UUID, recipe: schemas.RecipeCreate, db: AsyncSession = Depends(get_db)):
     updated_recipe = await crud.update_recipe(db, recipe_id, recipe)
     
@@ -139,7 +165,12 @@ async def update_recipe(recipe_id: UUID, recipe: schemas.RecipeCreate, db: Async
         "tags": updated_recipe.tags
     }
 
-@app.delete("/recipes/{recipe_id}", response_model=schemas.DeleteResponse)
+@app.delete(
+    "/recipes/{recipe_id}",
+    response_model=schemas.DeleteResponse,
+    summary="Delete Recipe",
+    description="Delete a recipe by its ID"
+)
 async def delete_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
     recipe = await crud.get_recipe(db, recipe_id)
     
@@ -149,8 +180,14 @@ async def delete_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
     await crud.delete_recipe(db, recipe_id)
     return {"status": "deleted"}
 
-@app.post("/images", response_model=schemas.ImageUploadResponse)
-async def upload_image(file: UploadFile = File(...)):
+@app.post(
+    "/images",
+    response_model=schemas.ImageUploadResponse,
+    summary="Upload Image",
+    description="Upload an image file for use in recipes. Returns the path to use in the recipe's image field.",
+    status_code=201
+)
+async def upload_image(file: UploadFile = File(..., description="Image file to upload (JPEG, PNG, etc.)")):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     
@@ -164,7 +201,24 @@ async def upload_image(file: UploadFile = File(...)):
     
     return {"image_path": f"/images/{unique_filename}"}
 
-@app.get("/images/{filename}")
+@app.get(
+    "/images/{filename}",
+    response_class=FileResponse,
+    summary="Get Image",
+    description="Retrieve an uploaded image file",
+    responses={
+        200: {
+            "content": {
+                "image/jpeg": {},
+                "image/png": {},
+                "image/gif": {},
+                "image/webp": {}
+            },
+            "description": "The image file"
+        },
+        404: {"description": "Image not found"}
+    }
+)
 async def get_image(filename: str):
     file_path = UPLOAD_DIR / filename
     
