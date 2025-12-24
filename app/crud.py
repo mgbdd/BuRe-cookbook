@@ -35,7 +35,9 @@ async def create_recipe(db: AsyncSession, user_id, recipe: schemas.RecipeCreate)
         instructions=recipe.instructions,
         servings=recipe.servings,
         cooking_time=recipe.cooking_time,
-        complexity=recipe.complexity
+        complexity=recipe.complexity,
+        image=recipe.image,
+        tags=recipe.tags if recipe.tags else []
     )
     db.add(db_recipe)
     

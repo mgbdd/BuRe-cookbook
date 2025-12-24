@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Literal
 from uuid import UUID
 from pydantic import BaseModel
 
@@ -8,21 +8,40 @@ class RecipeCreate(BaseModel):
     description: Optional[str] = None
     ingredients: Dict[str, str]
     instructions: str
-    servings: int = 1
-    cooking_time: int
-    complexity: int = 1
+    servings: Optional[int] = None
+    cooking_time: Optional[int] = None
+    complexity: Optional[Literal["easy", "medium", "hard"]] = None
+    image: Optional[str] = None
+    tags: Optional[List[str]] = None
 
 
-class RecipeOut(BaseModel):
+class RecipeId(BaseModel):
+    id: UUID
+
+
+class Recipe(BaseModel):
     id: UUID
     name: str
     description: Optional[str] = None
     ingredients: Dict[str, str]
     instructions: str
-    servings: int
-    cooking_time: int
-    complexity: int
+    servings: Optional[int] = None
+    cooking_time: Optional[int] = None
+    complexity: Optional[Literal["easy", "medium", "hard"]] = None
     image: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+class RecipeList(BaseModel):
+    recipes: List[Recipe]
+
+
+class ImageUploadResponse(BaseModel):
+    image_path: str
+
+
+class DeleteResponse(BaseModel):
+    status: str
 
 
 class Healthcheck(BaseModel):

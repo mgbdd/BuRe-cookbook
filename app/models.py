@@ -22,10 +22,12 @@ class Recipe(Base):
     name = Column(String, nullable=False)
     instructions = Column(Text, nullable=False)
     description = Column(Text)
-    servings = Column(Integer, default=1)
-    cooking_time = Column(Integer)
-    complexity = Column(Integer, default=1)
+    servings = Column(Integer, nullable=True)
+    cooking_time = Column(Integer, nullable=True)
+    complexity = Column(String, nullable=True)
     ingredients = Column(JSONB, nullable=False, default={})
+    image = Column(String, nullable=True)
+    tags = Column(JSONB, nullable=True, default=[])
 
 
 class Ingredient(Base):

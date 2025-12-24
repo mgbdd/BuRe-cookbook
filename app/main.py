@@ -1,13 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 import uuid
-import asyncio
 import logging
+import os
+import aiofiles
+from pathlib import Path
 
 from app.database import Base, engine, AsyncSessionLocal
 from app import crud, schemas, models
-from app.models import User
 
 # Настраиваем логирование
 logging.basicConfig(level=logging.INFO)
@@ -16,6 +18,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Recipes API")
 
 FAKE_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
 
 async def get_db():
     async with AsyncSessionLocal() as session:
@@ -66,23 +70,15 @@ async def startup_event():
 async def root():
     return {"message": "Recipes API is running"}
 
-@app.post("/recipes", response_model=schemas.RecipeOut)
+@app.post("/recipes", response_model=schemas.RecipeId)
 async def create_recipe(recipe: schemas.RecipeCreate, db: AsyncSession = Depends(get_db)):
     db_recipe = await crud.create_recipe(db, FAKE_USER_ID, recipe)
     
     return {
-        "id": db_recipe.recipe_id,
-        "name": db_recipe.name,
-        "description": db_recipe.description,
-        "ingredients": db_recipe.ingredients,
-        "instructions": db_recipe.instructions,
-        "servings": db_recipe.servings,
-        "cooking_time": db_recipe.cooking_time,
-        "complexity": db_recipe.complexity,
-        "image": None
+        "id": db_recipe.recipe_id
     }
 
-@app.get("/recipes", response_model=list[schemas.RecipeOut])
+@app.get("/recipes", response_model=schemas.RecipeList)
 async def list_recipes(db: AsyncSession = Depends(get_db)):
     recipes = await crud.get_recipes(db, FAKE_USER_ID)
     
@@ -97,12 +93,13 @@ async def list_recipes(db: AsyncSession = Depends(get_db)):
             "servings": recipe.servings,
             "cooking_time": recipe.cooking_time,
             "complexity": recipe.complexity,
-            "image": None
+            "image": recipe.image,
+            "tags": recipe.tags
         })
     
     return result
 
-@app.get("/recipes/{recipe_id}", response_model=schemas.RecipeOut)
+@app.get("/recipes/{recipe_id}", response_model=schemas.Recipe)
 async def get_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
     recipe = await crud.get_recipe(db, recipe_id)
     
@@ -118,10 +115,11 @@ async def get_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
         "servings": recipe.servings,
         "cooking_time": recipe.cooking_time,
         "complexity": recipe.complexity,
-        "image": None
+        "image": recipe.image,
+        "tags": recipe.tags
     }
 
-@app.put("/recipes/{recipe_id}", response_model=schemas.RecipeOut)
+@app.put("/recipes/{recipe_id}", response_model=schemas.Recipe)
 async def update_recipe(recipe_id: UUID, recipe: schemas.RecipeCreate, db: AsyncSession = Depends(get_db)):
     updated_recipe = await crud.update_recipe(db, recipe_id, recipe)
     
@@ -137,9 +135,11 @@ async def update_recipe(recipe_id: UUID, recipe: schemas.RecipeCreate, db: Async
         "servings": updated_recipe.servings,
         "cooking_time": updated_recipe.cooking_time,
         "complexity": updated_recipe.complexity,
-        "image": None
+        "image": updated_recipe.image,
+        "tags": updated_recipe.tags
     }
-@app.delete("/recipes/{recipe_id}")
+
+@app.delete("/recipes/{recipe_id}", response_model=schemas.DeleteResponse)
 async def delete_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
     recipe = await crud.get_recipe(db, recipe_id)
     
@@ -148,3 +148,27 @@ async def delete_recipe(recipe_id: UUID, db: AsyncSession = Depends(get_db)):
     
     await crud.delete_recipe(db, recipe_id)
     return {"status": "deleted"}
+
+@app.post("/images", response_model=schemas.ImageUploadResponse)
+async def upload_image(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    file_extension = os.path.splitext(file.filename)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = UPLOAD_DIR / unique_filename
+    
+    async with aiofiles.open(file_path, 'wb') as out_file:
+        content = await file.read()
+        await out_file.write(content)
+    
+    return {"image_path": f"/images/{unique_filename}"}
+
+@app.get("/images/{filename}")
+async def get_image(filename: str):
+    file_path = UPLOAD_DIR / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    return FileResponse(file_path)
