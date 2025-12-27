@@ -1,0 +1,12 @@
+{
+    "name" : "Омлет",
+    "description": "завтрак чемпиона",
+    "ingredients" : {
+        "яцйо" : "2 штуки",
+        "молоко" : "100 мл"
+    },
+    "instructions": "взбить яцйа с молоком, пожарить",
+    "servings" : 1,
+    "cooking_time" : 10, 
+    "difficulty" : 1
+}
